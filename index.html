@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sto lat, Nataliś! 🎉</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+
+    /* Kolory i czcionki */
+    :root {
+      --pastel-pink: #f8c7d1;
+      --pastel-purple: #c4a3f9;
+      --trap-purple: #7e57c2;
+      --trap-dark: #4a148c;
+      --text-light: #f5f5f5;
+      --text-dark: #2c2c2c;
+      --background-gradient: linear-gradient(135deg, var(--pastel-pink), var(--pastel-purple), var(--trap-purple));
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--background-gradient);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 2rem 1rem 1rem;
+      text-align: center;
+      color: var(--text-light);
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.6);
+    }
+
+    header h1 {
+      font-weight: 600;
+      font-size: 2.8rem;
+      margin-bottom: 0.2rem;
+    }
+    header p {
+      font-weight: 300;
+      font-size: 1.1rem;
+      letter-spacing: 0.06em;
+    }
+
+    /* Muzyka - odtwarzacz */
+    #player {
+      margin: 1rem auto 3rem;
+      max-width: 320px;
+      background: rgba(255 255 255 / 0.15);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      color: var(--text-light);
+      text-align: center;
+      box-shadow: 0 0 15px 4px rgba(126, 87, 194, 0.4);
+    }
+    #player h2 {
+      margin: 0 0 0.5rem;
+      font-weight: 600;
+    }
+    #player audio {
+      width: 100%;
+      border-radius: 8px;
+      outline: none;
+      filter: drop-shadow(0 0 3px rgba(126, 87, 194, 0.7));
+    }
+    #player .tracklist {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.7rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #player .track {
+      background: var(--trap-dark);
+      padding: 0.4rem 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+    }
+    #player .track.active,
+    #player .track:hover {
+      background: var(--pastel-pink);
+      color: var(--trap-dark);
+    }
+
+    /* Sekcja 100 rzeczy */
+    #things {
+      max-width: 700px;
+      background: rgba(255 255 255 / 0.25);
+      margin: 2rem 1rem;
+      border-radius: 15px;
+      padding: 1.5rem 2rem;
+      color: var(--trap-dark);
+      box-shadow: 0 0 25px 2px rgba(255, 255, 255, 0.3);
+      overflow-x: hidden;
+    }
+    #things h2 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+      color: var(--trap-dark);
+    }
+    #things-list {
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--trap-purple) transparent;
+    }
+    #things-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    #things-list::-webkit-scrollbar-thumb {
+      background-color: var(--trap-purple);
+      border-radius: 3px;
+    }
+    #things-list li {
+      font-size: 1.15rem;
+      margin: 0.7rem 0;
+      opacity: 0;
+      transform: translateX(-30px);
+      animation-fill-mode: forwards;
+      animation-duration: 0.5s;
+      animation-timing-function: ease-out;
+    }
+    #things-list li:nth-child(odd) {
+      color: var(--trap-dark);
+      font-weight: 500;
+    }
+    #things-list li:nth-child(even) {
+      color: var(--trap-purple);
+      font-weight: 600;
+    }
+
+    /* Animacja pojawiania */
+    @keyframes slideFadeIn {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Galeria */
+    #gallery {
+      max-width: 900px;
+      margin: 2rem 1rem 4rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+    #gallery img {
+      width: 100%;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 10px 1px rgba(126, 87, 194, 0.7);
+      transition: transform 0.3s ease;
+    }
+    #gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Lightbox */
+    #lightbox {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+    #lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 0 30px 6px var(--pastel-purple);
+    }
+    #lightbox .close {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      font-size: 2.5rem;
+      color: var(--pastel-pink);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 700;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
+    }
+
+    /* Życzenia */
+    #wishes {
+      max-width: 720px;
+      background: rgba(255 255 255 / 0.35);
+      margin: 2rem 1rem 4rem;
+      border-radius: 20px;
+      padding: 2rem 2.5rem;
+      font-size: 1.15rem;
+      color: var(--trap-dark);
+      box-shadow: 0 0 30px 6px rgba(196, 163, 249, 0.4);
+      line-height: 1.6;
+      font-style: italic;
+      user-select: text;
+    }
+
+    /* Responsywność */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      #things {
+        padding: 1rem 1.2rem;
+      }
+      #wishes {
+        font-size: 1rem;
+        padding: 1.5rem 1.8rem;
+      }
+      #gallery {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Sto lat, księżniczko! 🎉</h1>
+  <p>Oboje wiemy, że nasza sytuacja nie daje mi możliwości sprezentowania ci czegoś fizycznie aleee wpadłem na pomysł zrobienia czegoś takiego hshshs</p>
+</header>
+
+<section id="player" aria-label="Odtwarzacz muzyki">
+  <h2>Muzyczka dla Ciebie</h2>
+  (coś bez czego oboje nie jesteśmy w stanie funkcjonować)
+  <audio id="audio" controls autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2021/10/10/audio_1a089c153f.mp3?filename=soft-background-ambient-9095.mp3" type="audio/mpeg">
+    Twoja przeglądarka nie wspiera odtwarzania audio.
+  </audio>
+  <div class="tracklist" role="list">
+    <div class="track active" role="listitem" tabindex="0" data-src="C:\Users\Maciej\Desktop\ŻYCIE TO ZA MAŁO (1).m4a">coś dla ciebie</div>
+    <div class="track" role="listitem" tabindex="0" data-src="C:\Users\Maciej\Desktop\OKI - BADDEST (directed by KOOZA).m4a">coś o tobie</div>
+      <div class="track" role="listitem" tabindex="0" data-src="C:\Users\Maciej\Desktop\Bogini.m4a">również o tobie</div>
+    <div class="track" role="listitem" tabindex="0" data-src="C:\Users\Maciej\Desktop\Post Malone, Swae Lee - Sunflower (Spider-Man_ Into the Spider-Verse) (Official Video).m4a">nutka numero tres(nie wnikaj)</div>
+    <div class="track" role="listitem" tabindex="0" data-src="C:\Users\Maciej\Desktop\PRO8L3M - Interpol.m4a">nasza nutka :*</div>
+  </div>
+</section>
+
+<section id="things" aria-label="100 rzeczy które kocham w Tobie">
+  <h2>100 rzeczy, które w Tobie kocham ❤️</h2>
+  <ul id="things-list" aria-live="polite">
+    <!-- Przykładowe 10 rzeczy, łatwo rozszerzyć -->
+   <li> Twój cudowny uśmiech, który rozświetla każdy mój dzień</li>
+
+ <li>Twoje piękne, pełne blasku oczy</li>
+
+<li>To, jak mnie wspierasz w trudnych chwilach</li>
+
+<li>Twoja szczerość i otwartość</li>
+
+<li>To, jak słuchasz mnie uważnie</li>
+
+<li>Twój ciepły, kojący głos</li>
+
+<li>Jak potrafisz mnie rozśmieszyć nawet w gorszy dzień</li>
+
+<li>Twoja troskliwość</li>
+
+<li>To, że zawsze mogę na Ciebie liczyć</li>
+
+<li>Twoja cierpliwość wobec moich wad</li>
+
+<li>Twój niepowtarzalny styl ubierania się</li>
+
+<li>Sposób, w jaki się poruszasz</li>
+
+<li>Nasze wspólne rozmowy</li>
+
+<li>To, że przy tobie mogę być naprawdę sobą</li>
+
+<li>To, jak inspirujesz mnie do bycia lepszym człowiekiem</li>
+
+<li>Twoja pasja do rzeczy, które kochasz</li>
+
+<li>Jak potrafisz być jednocześnie silna i delikatna</li>
+
+<li>To, jak sprawiasz że jestem szczęśliwy</li>
+
+<li>To, jak troszczysz się o naszą relację</li>
+
+<li>Twoja radość, która zaraża wszystkich dookoła</li>
+
+<li>To, że dzielisz ze mną swoje marzenia</li>
+
+<li>Twoja wrażliwość na potrzeby innych</li>
+
+<li>To, jak lubisz odkrywać nowe rzeczy razem ze mną</li>
+
+<li>Twoja kreatywność i pomysłowość</li>
+
+<li>Jak potrafisz słuchać i doradzać</li>
+
+<li>Twój niepowtarzalny śmiech</li>
+
+<li>To, jak potrafisz zaskakiwać mnie drobnymi gestami</li>
+
+<li>Twoje czułe słowa i komplementy</li>
+
+<li>To, że szanujesz moją przestrzeń i wolność</li>
+
+<li>Twoje zainteresowanie moimi pasjami</li>
+
+<li>Jak potrafisz zadbać o atmosferę wokół nas</li>
+
+<li>Twoja siła w pokonywaniu przeciwności</li>
+
+<li>To, że potrafisz być najlepszą dziewczyną</li>
+
+<li>Twoje ciepło i serdeczność</li>
+
+<li>To, że pamiętasz nawet najmniejsze szczegóły o mnie</li>
+
+<li>Twój entuzjazm do życia</li>
+
+<li>Jak potrafisz celebrować nasze wspólne chwile</li>
+
+<li>Twoja delikatność i empatia</li>
+
+<li>To, że jesteś prawdziwa i autentyczna</li>
+
+<li>Twój talent do rozwiązywania problemów</li>
+
+<li>To, jak potrafisz mnie pocieszyć bez słów</li>
+
+<li>Twoja niezależność i samodzielność</li>
+
+<li>Jak potrafisz zorganizować czas, by był wyjątkowy</li>
+
+<li>Twoja umiejętność kompromisu</li>
+
+<li>To, że jesteś moim bezpiecznym miejscem</li>
+
+<li>Twój urok osobisty</li>
+
+<li>To, jak lubisz dbać o zdrowie i dobre samopoczucie</li>
+
+<li>Twoja otwartość na nowe doświadczenia</li>
+
+<li>Jak potrafisz sprawić, że czuję się ważny</li>
+
+<li>Twoja delikatna skóra i dotyk</li>
+
+<li>To, że potrafisz kochać</li>
+
+<li>Twoja lojalność</li>
+
+<li>To, że jesteś ciekawa świata</li>
+
+<li>Twój wyjątkowy gust muzyczny</li>
+
+<li>Jak potrafisz tworzyć niesamowitą atmosferę</li>
+
+<li>Twoje małe, codzienne rytuały</li>
+
+<li>To, że potrafisz wybaczać</li>
+
+<li>Twój piękny głos, gdy śpiewasz</li>
+
+<li>To, że dzielisz ze mną swoje uczucia</li>
+
+<li>Twoja duma z naszych wspólnych sukcesów</li>
+
+<li>Jak potrafisz być spontaniczna i zabawna</li>
+
+<li>Twoja energia, która mnie motywuje</li>
+
+<li>To, jak dbasz o rodzinę i przyjaciół</li>
+
+<li>Twoja umiejętność słuchania bez oceniania</li>
+
+<li>To, że potrafisz się śmiać z siebie</li>
+
+<li>Twoja elegancja i klasa</li>
+
+<li>To, że codziennie dajesz mi siłę i motywację</li>
+
+<li>Twoje wsparcie w moich pasjach</li>
+
+<li>To, jak potrafisz rozjaśnić każdy pokój</li>
+
+<li>Twoja skłonność do niesienia pomocy</li>
+
+<li>To, że razem możemy być sobą w 100%</li>
+
+<li>Twoja dbałość o detale</li>
+
+<li>To, jak potrafisz inspirować innych swoim życiem</li>
+
+<li>Twoja radość z małych rzeczy</li>
+
+<li>To, że potrafisz rozmawiać o wszystkim i o niczym</li>
+
+<li>Twój uśmiech na dobranoc i dzień dobry</li>
+
+<li>To, że razem tworzymy naszą małą historię</li>
+
+<li>Twoja wierność i oddanie</li>
+
+<li>To, jak potrafisz pokazać, że Ci zależy</li>
+
+<li>Twoja siła, gdy razem stawiamy czoła wyzwaniom</li>
+
+<li>To, że mogę z Tobą dzielić każdy dzień</li>
+
+<li>Twoja kreatywność w rozwiązywaniu problemów</li>
+
+<li>To, jak dbasz o naszą przyszłość</li>
+
+<li>Twój zmysł humoru</li>
+
+<li>To, że potrafisz być poważna i zabawna jednocześnie</li>
+
+<li>Twoje ciepłe gesty</li>
+
+<li>To, że jesteś moim domem, gdziekolwiek jesteśmy</li>
+
+<li>To, że sprawiasz, że to małe dziecko we mnie jest szczęśliwe</li>
+
+<li>To, jak potrafisz mnie zaskakiwać i inspirować</li>
+
+<li>Twoja naturalna piękność</li>
+
+<li>To, że jesteś moją muzą i inspiracją</li>
+
+<li>Twoja mądrość i dojrzałość</li>
+
+<li>To, jak potrafisz kochać bezwarunkowo</li>
+
+<li>Twoja otwartość na świat i ludzi</li>
+
+<li>To, jak zaczynasz i kończysz każdy dzień ze mną</li>
+
+<li>Twoja uczciwość i prawdomówność</li>
+
+<li>To, jak dbasz o swoje pasje i rozwój</li>
+
+<li>Twój spokój, który mnie uspokaja</li>
+
+<li>To, że zawsze chcesz się uczyć i poznawać nowe rzeczy</li>
+
+<li>To, że jesteś po prostu Ty — idealna w swojej wyjątkowości ❤️</li>
+  </ul>
+</section>
+
+<section id="gallery" aria-label="Galeria zdjęć z Tobą">
+  <!-- Podmień poniższe src na prawdziwe zdjęcia które przesłałeś -->
+  <img src="IMG_20250601_094538_911.jpg"  tabindex="0"/>
+  <img src="IMG_20250605_141845_983.jpg"  tabindex="0"/>
+  <img src="Snapchat-494526597.jpg"  tabindex="0"/>
+  <img src="IMG_20250613_111558_270.jpg"  tabindex="0"/>
+</section>
+
+<section id="wishes" aria-label="Życzenia urodzinowe">
+  <p>
+    Kochana Nataliś,<br><br>
+
+Z okazji Twoich urodzin chciałem Ci życzyć wszystkiego, co najlepsze.<br>
+Żebyś spełniła wszystkie swoje marzenia, miała mnóstwo zdrowia, radości i przede wszystkim – żebyś była naprawdę szczęśliwa. Bo Twoje szczęście to dla mnie najważniejsza rzecz na świecie.<br>
+Chociaż dzisiaj nie możemy być razem, cieszę się, że mogę świętować ten wyjątkowy dzień właśnie z Tobą – choćby w ten sposób. Mam nadzieję, że kolejne urodziny będziemy spędzać już ramię w ramię.<br>
+Jesteś najlepszym, co mnie w życiu spotkało. Najlepszą dziewczyną, jaką mogłem sobie wymarzyć. Jesteś spełnieniem marzeń – moich teraz i tych, które miałem jako dzieciak, marząc o tak cudownej osobie jak Ty.<br>
+Dziękuję Ci, że jesteś. Że wytrzymujesz ze mną, nawet kiedy nie jestem idealny. Wiem, że nie zawsze się rozumiemy, ale staram się – i będę się starał jeszcze bardziej – żeby być dla Ciebie najlepszym chłopakiem.<br>
+Jesteś moim największym wsparciem. Moim wszystkim.<br>
+Proszę Cię – nigdy nie wątp w to, że Cię kocham. Nigdy.<br>
+Nie istnieje na świecie żadna inna dziewczyna, która mogłaby zająć Twoje miejsce.<br>
+Moje oczy widzą tylko Ciebie – bo to z Tobą chcę założyć rodzinę i dzielić życie.<br>
+Obiecuję, że będę Ci każdego dnia pokazywał, że nie wszyscy faceci są źli. Że ja nie jestem jak inni.<br>
+Wierzę, że przetrwamy wszystko – nawet odległość. Wierzę, że jeszcze niedługo się to zmieni.<br>
+Nawet jeśli przyjdą kłótnie, trudne chwile, ciche dni – chcę, żebyśmy trwali razem mimo wszystko. Bo Ty jesteś tą jedyną.<br>
+Nie zmieniaj się nigdy, Natalka. Kocham Cię dokładnie taką, jaka jesteś.<br>
+Dziękuję, że jesteś.<br>
+Kocham Cię najmocniej na świecie.<br>
+Pamiętaj, że zawsze możesz na mnie liczyć.<br>
+Wszystkiego najlepszego, skarbie! ❤️🎉<br>
+    Twój Maciuś ❤️
+  </p>
+  <section id="gallery" aria-label="Galeria">
+  <img src="IMG_20250726_214557.jpg"  tabindex="0"/>
+</section>
+</section>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia">
+  <span class="close" role="button" aria-label="Zamknij podgląd">&times;</span>
+  <img src="" alt="Zdjęcie powiększone" />
+</div>
+
+<script>
+  // Animacja pojawiania listy 100 rzeczy
+  const listItems = document.querySelectorAll('#things-list li');
+  listItems.forEach((li, idx) => {
+    li.style.animation = `slideFadeIn 0.5s ease-out forwards`;
+    li.style.animationDelay = `${idx * 0.15}s`;
+  });
+
+  // Odtwarzacz muzyki z listą
+  const audio = document.getElementById('audio');
+  const tracks = document.querySelectorAll('#player .track');
+
+  tracks.forEach(track => {
+    track.addEventListener('click', () => {
+      tracks.forEach(t => t.classList.remove('active'));
+      track.classList.add('active');
+      audio.src = track.dataset.src;
+      audio.play();
+    });
+    track.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        track.click();
+      }
+    });
+  });
+
+  // Lightbox do galerii
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = lightbox.querySelector('img');
+  const lightboxClose = lightbox.querySelector('.close');
+  const galleryImgs = document.querySelectorAll('#gallery img');
+
+  galleryImgs.forEach(img => {
+    img.addEventListener('click', () => {
+      lightbox.classList.add('active');
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+    });
+    img.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        img.click();
+      }
+    });
+  });
+
+  lightboxClose.addEventListener('click', () => {
+    lightbox.classList.remove('active');
+    lightboxImg.src = '';
+    lightboxImg.alt = '';
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      lightbox.classList.remove('active');
+      lightboxImg.src = '';
+      lightboxImg.alt = '';
+    }
+  });
+
+</script>
+
+</body>
+</html>
